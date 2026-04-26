@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id" data-mode="pomodoro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pomodoro_product_for_domas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <audio id="notif-sound" preload="auto">
+    <source src="notification.mp3" type="audio/mpeg" />
+  </audio>
+
+  <div id="popup-overlay" class="popup-overlay">
+    <div class="popup-stepper" aria-hidden="true">
+      <span class="stepper-dot active"></span>
+      <span class="stepper-dot"></span>
+      <span class="stepper-dot"></span>
+    </div>
+
+    <div id="popup-1" class="popup-card" role="dialog" aria-modal="true" aria-labelledby="p1-heading">
+      <div class="pcard-img-wrap">
+        <!-- GANTI: src="foto1.jpg" → path foto permintaan maaf kamu -->
+        <img src="foto1.jpg" alt="Foto" class="pcard-img" onerror="this.parentElement.classList.add('no-img')" />
+        <div class="pcard-img-fallback"><span>📸</span><span>foto1.jpg</span></div>
+      </div>
+      <div class="pcard-body">
+        <span class="pcard-eyebrow">haii dooo</span>
+        <h2 class="pcard-heading" id="p1-heading">maapiin akuu yaa domaass..</h2>
+        <p class="pcard-text">aku tau aku udah ngecewain kamu dan bikin kamu gak nyaman, aku akan berusaha lebih bijak lagi. harapanku semoga kedepannya
+          kamu bisa lebih enjoy untuk ngelakuin apapun di sosmed, karena udah gak ada lagi yang kepoin kamu kayak mata-mata dan gak ada lagi yang perlu ditakutin juga, 
+          aku telah menghapus second account ku sebagai batasan yang ku buat untuk diriku sendiri.
+        </p>
+        <div class="pcard-actions">
+          <!--
+            TOMBOL "MAU":
+            - Scale akumulatif × POPUP_SCALE_FACTOR (default 1.5) setiap klik "Enggak"
+            - Atur faktor & batas di: CFG.POPUP_SCALE_FACTOR dan CFG.MAX_POPUP_SCALE (script.js)
+            - Kecepatan animasi: .btn-mau { transition: transform Xs ... } di style.css
+          -->
+          <button id="p1-mau" class="btn-mau" style="--s:1">iya mas</button>
+          <button id="p1-enggak" class="btn-enggak">EMOH</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="popup-2" class="popup-card is-hidden" role="dialog" aria-modal="true" aria-labelledby="p2-heading">
+      <div class="pcard-img-wrap">
+        <!-- GANTI: src="foto2.jpg" → path foto konfirmasi kamu -->
+        <img src="foto2.jpg" alt="Foto" class="pcard-img" onerror="this.parentElement.classList.add('no-img')" />
+        <div class="pcard-img-fallback"><span>🤳</span><span>foto2.jpg</span></div>
+      </div>
+      <div class="pcard-body">
+        <h2 class="pcard-heading" id="p2-heading">ih beneran serius kamu udah mau maafin aku??</h2>
+        <p class="pcard-text">yaaa walaupun belum 100% legowo gpp deh...tapi beneran kan?? kita masih bisa temenan baik iya kan??</p>
+        <div class="pcard-actions">
+          <button id="p2-mau" class="btn-mau" style="--s:1">y</button>
+          <button id="p2-enggak" class="btn-enggak">GA</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="popup-3" class="popup-card popup-gift is-hidden" role="dialog" aria-modal="true" aria-labelledby="p3-heading">
+      <div class="gift-top">
+        <div class="gift-glyph">🎁</div>
+        <span class="pcard-eyebrow">i have something for uuuu</span>
+        <h2 class="pcard-heading" id="p3-heading">makasih yaa udah jadi manusia yang sabar bgttt mwehehe</h2>
+      </div>
+      <div class="gift-banner">
+        <!-- GANTI: teks hadiah/voucher Netflix di bawah ini -->
+        <p class="gift-text">
+          AKU ADA AKUN SHARING NETFLIX PREIMUM NIHHHH<br /><br />
+          kamu kalau lagi <strong>istirahat</strong> atau lagi <strong>main sama temen</strong>,
+          bisa buanget nonton Netflix yawww, uu deserve it!<br />semoga menghibur<br>
+          (ss ke aku tampilan ini ya buat konfirmasi, makasih do)
+        </p>
+      </div>
+      <button id="p3-done" class="btn-done">iya mas</button>
+    </div>
+  </div>
+
+  <div id="app" class="app">
+    <header class="topbar">
+      <div class="brand">
+        <svg class="brand-tomato" viewBox="0 0 32 32" fill="none">
+          <path d="M16 4c0 0-3-3-6-1 0 0 1.5 4 6 4 0 0-1.5-2 0-3z" fill="#4ade80"/>
+          <path d="M16 4c0 0 3-3 6-1 0 0-1.5 4-6 4 0 0 1.5-2 0-3z" fill="#22c55e"/>
+          <circle cx="16" cy="19" r="11" fill="#ef4444"/>
+          <ellipse cx="12" cy="16" rx="3" ry="4.5" fill="rgba(255,255,255,0.18)" transform="rotate(-15 12 16)"/>
+        </svg>
+        <span class="brand-text">pomo<em>focus</em></span>
+      </div>
+      <div class="topbar-meta">
+        <div class="session-pill">
+          <span class="session-pulse"></span>
+          <span id="session-count-label">0 sessions</span>
+        </div>
+      </div>
+    </header>
+
+    <nav class="mode-nav" role="tablist" aria-label="Timer mode">
+      <button class="mtab active" data-mode="pomodoro"    role="tab" aria-selected="true">Pomodoro</button>
+      <button class="mtab"        data-mode="short-break" role="tab">Short Break</button>
+      <button class="mtab"        data-mode="long-break"  role="tab">Long Break</button>
+    </nav>
+
+    <main class="timer-card" id="timer-card">
+      <div class="ring-wrap" role="timer" aria-live="off">
+        <svg class="ring-svg" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="f-glow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop id="grad-stop1" offset="0%"   stop-color="var(--accent-a)"/>
+              <stop id="grad-stop2" offset="100%" stop-color="var(--accent-b)"/>
+            </linearGradient>
+          </defs>
+          <circle class="ring-track" cx="140" cy="140" r="118"/>
+          <circle id="ring-glow" class="ring-glow" cx="140" cy="140" r="118"
+            stroke-dasharray="741.42" stroke-dashoffset="0" filter="url(#f-glow)"/>
+          <circle id="ring-fill" class="ring-fill" cx="140" cy="140" r="118"
+            stroke-dasharray="741.42" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-face">
+          <div class="digits-row">
+            <span id="d-min" class="digit">25</span>
+            <span class="digit-sep">:</span>
+            <span id="d-sec" class="digit">00</span>
+          </div>
+          <div id="mode-sublabel" class="mode-sublabel">POMODORO</div>
+        </div>
+      </div>
+
+      <button id="btn-main" class="btn-main" aria-label="Start atau Stop timer">Start</button>
+
+      <div class="adj-strip">
+        <button id="btn-minus" class="adj-btn" aria-label="Kurangi 1 menit">
+          <svg viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="7" width="12" height="2" rx="1"/></svg>
+          <span>1 min</span>
+        </button>
+        <button id="btn-plus" class="adj-btn" aria-label="Tambah 1 menit">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a1 1 0 011 1v4h4a1 1 0 010 2H9v4a1 1 0 01-2 0V9H3a1 1 0 010-2h4V3a1 1 0 011-1z"/></svg>
+          <span>1 min</span>
+        </button>
+      </div>
+    </main>
+
+    <section class="chart-panel" aria-label="Aktivitas mingguan">
+      <div class="chart-topbar">
+        <div class="chart-titles">
+          <h3 class="chart-heading">Activity</h3>
+          <p class="chart-subheading">Menit per hari — 7 hari terakhir</p>
+        </div>
+        <div class="chart-legend">
+          <span class="lgd"><i class="lgd-dot lgd-focus"></i>Focus</span>
+          <span class="lgd"><i class="lgd-dot lgd-short"></i>Short</span>
+          <span class="lgd"><i class="lgd-dot lgd-long"></i>Long</span>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas id="activity-chart"></canvas>
+      </div>
+      <div class="chart-stats">
+        <div class="stat-box">
+          <span class="stat-val" id="stat-total">0</span>
+          <span class="stat-key">min total</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-val" id="stat-streak">0</span>
+          <span class="stat-key">day streak</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-val" id="stat-sessions">0</span>
+          <span class="stat-key">sessions</span>
+        </div>
+      </div>
+    </section>
+
+    <footer class="app-footer">
+      <span>pomo<em>focus</em> · <kbd>Space</kbd> start/stop</span>
+    </footer>
+  </div>
+
+  <div id="session-modal" class="modal-backdrop is-hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-img-wrap">
+        <!-- GANTI: tambah path gambar di array MODAL_IMAGES (script.js) -->
+        <img id="modal-photo" src="foto_random.jpg" alt="" class="modal-photo"
+             onerror="this.parentElement.classList.add('no-img')"/>
+        <div class="pcard-img-fallback modal-fallback"><span>🖼️</span><span>foto_random.jpg</span></div>
+        <div class="modal-img-badge">Session Complete ✓</div>
+      </div>
+      <div class="modal-inner">
+        <!-- Teks diambil acak dari SESSION_QUESTIONS di script.js -->
+        <h2 id="modal-q" class="modal-q">Gimana sesinya?</h2>
+        <div class="emoji-row" role="radiogroup" aria-label="Rating sesi">
+          <button class="em-btn" data-v="1" title="Sangat buruk" aria-label="Sangat buruk">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="20" r="19" fill="#ef4444"/>
+              <circle cx="13" cy="16" r="2.5" fill="#7f1d1d"/>
+              <circle cx="27" cy="16" r="2.5" fill="#7f1d1d"/>
+              <path d="M12 27 Q20 21 28 27" stroke="#7f1d1d" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <path d="M11 12 Q13 10 15 12" stroke="#7f1d1d" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <path d="M25 12 Q27 10 29 12" stroke="#7f1d1d" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="em-btn" data-v="2" title="Kurang baik" aria-label="Kurang baik">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="20" r="19" fill="#f97316"/>
+              <circle cx="13" cy="16" r="2.5" fill="#7c2d12"/>
+              <circle cx="27" cy="16" r="2.5" fill="#7c2d12"/>
+              <path d="M13 26 Q20 23 27 26" stroke="#7c2d12" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="em-btn" data-v="3" title="Biasa aja" aria-label="Biasa aja">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="20" r="19" fill="#facc15"/>
+              <circle cx="13" cy="16" r="2.5" fill="#713f12"/>
+              <circle cx="27" cy="16" r="2.5" fill="#713f12"/>
+              <line x1="13" y1="26" x2="27" y2="26" stroke="#713f12" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="em-btn" data-v="4" title="Cukup baik" aria-label="Cukup baik">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="20" r="19" fill="#4ade80"/>
+              <circle cx="13" cy="16" r="2.5" fill="#14532d"/>
+              <circle cx="27" cy="16" r="2.5" fill="#14532d"/>
+              <path d="M13 23 Q20 29 27 23" stroke="#14532d" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="em-btn" data-v="5" title="Luar biasa" aria-label="Luar biasa">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="20" r="19" fill="#16a34a"/>
+              <circle cx="13" cy="15" r="3.5" fill="#052e16"/>
+              <circle cx="27" cy="15" r="3.5" fill="#052e16"/>
+              <circle cx="14.5" cy="13.5" r="1.2" fill="white"/>
+              <circle cx="28.5" cy="13.5" r="1.2" fill="white"/>
+              <path d="M11 23 Q20 32 29 23" stroke="#052e16" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <!-- Placeholder diambil acak dari SESSION_PLACEHOLDERS di script.js -->
+        <textarea id="journal-ta" class="journal-ta"
+          placeholder="Tulis sesuatu tentang sesi ini... (opsional)"
+          rows="3" maxlength="500"></textarea>
+        <span id="char-count" class="char-count">0 / 500</span>
+        <div class="modal-actions">
+          <button id="modal-skip" class="mbtn mbtn-ghost">Lewati</button>
+          <button id="modal-save" class="mbtn mbtn-primary">Simpan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="test.js"></script>
+</body>
+</html>
