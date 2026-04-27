@@ -3,21 +3,66 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pomodoro_product_for_domas</title>
+    <title>pomofocus_for_domas</title>
+
+    <!-- Security: Content Security Policy
+       'unsafe-inline' di style-src diperlukan untuk CSS custom properties
+       yang di-set via JS (element.style.setProperty).
+       frame-ancestors harus diset via HTTP header di server — tidak bisa via meta tag.
+       Tambahkan di server: X-Frame-Options: DENY dan Content-Security-Policy: frame-ancestors 'none'
+  -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+    default-src 'self';
+    script-src  'self' https://cdn.jsdelivr.net;
+    style-src   'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src    'self' https://fonts.gstatic.com;
+    img-src     'self' data: blob:;
+    connect-src 'self' https://cdn.jsdelivr.net;
+    worker-src  'self' blob:;
+    manifest-src 'self';
+  "
+    />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta
+      http-equiv="Referrer-Policy"
+      content="strict-origin-when-cross-origin"
+    />
+
+    <!-- PWA -->
+    <meta name="theme-color" content="#111113" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="pomofocus" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;600&display=swap"
       rel="stylesheet"
     />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="style.css?=v1.1" />
+
+    <!-- Chart.js — tambahkan SRI hash yang benar setelah verifikasi:
+       openssl dgst -sha384 -binary chart.umd.min.js | openssl base64 -A -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <link rel="stylesheet" href="style.css?v=1.2" />
   </head>
   <body>
     <audio id="notif-sound" preload="auto">
+      <!-- GANTI: src dengan path file audio notifikasi lokal -->
       <source src="notification.mp3" type="audio/mpeg" />
     </audio>
 
+    <!-- ── Popup Overlay ── -->
     <div id="popup-overlay" class="popup-overlay">
       <div class="popup-stepper" aria-hidden="true">
         <span class="stepper-dot active"></span>
@@ -33,7 +78,7 @@
         aria-labelledby="p1-heading"
       >
         <div class="pcard-img-wrap">
-          <!-- GANTI: src="foto1.jpg" → path foto permintaan maaf kamu -->
+          <!-- GANTI: src="foto1.jpg" dengan path foto kamu -->
           <img
             src="foto1.jpg"
             alt="Foto"
@@ -50,17 +95,17 @@
             maapiin akuu yaa domaass..
           </h2>
           <p class="pcard-text">
-            aku tau aku udah ngecewain kamu dan bikin kamu gak nyaman, maka dari itu aku akan
-            berusaha lebih bijak lagi. harapanku semoga kedepannya kamu bisa
-            lebih enjoy untuk ngelakuin apapun di sosmed, aku juga udah lakuin beberapa hal seperti remove seccond account sebagai
+            aku tau aku udah ngecewain kamu dan bikin kamu gak nyaman, maka dari
+            itu aku akan berusaha lebih bijak lagi. harapanku semoga kedepannya
+            kamu bisa lebih enjoy untuk ngelakuin apapun di sosmed, aku juga
+            udah lakuin beberapa hal seperti remove seccond account sebagai
             batasan yang ku buat untuk diriku sendiri.
           </p>
           <div class="pcard-actions">
             <!--
-            TOMBOL "MAU":
-            - Scale akumulatif × POPUP_SCALE_FACTOR (default 1.5) setiap klik "Enggak"
-            - Atur faktor & batas di: CFG.POPUP_SCALE_FACTOR dan CFG.MAX_POPUP_SCALE (script.js)
-            - Kecepatan animasi: .btn-mau { transition: transform Xs ... } di style.css
+            TOMBOL "MAU" — scale dikelola JS via CSS var --s
+            Kecepatan: .btn-mau transition di style.css
+            Faktor skala: CFG.POPUP_SCALE_FACTOR di script.js
           -->
             <button id="p1-mau" class="btn-mau">iya mas</button>
             <button id="p1-enggak" class="btn-enggak">EMOH</button>
@@ -76,7 +121,7 @@
         aria-labelledby="p2-heading"
       >
         <div class="pcard-img-wrap">
-          <!-- GANTI: src="foto2.jpg" → path foto konfirmasi kamu -->
+          <!-- GANTI: src="foto2.jpg" dengan path foto kamu -->
           <img
             src="foto2.jpg"
             alt="Foto"
@@ -117,7 +162,8 @@
           </h2>
         </div>
         <div class="gift-banner">
-          <!-- GANTI: teks hadiah/voucher Netflix di bawah ini -->
+          <div class="netflix-logo"><span>N</span></div>
+          <!-- GANTI: teks hadiah/pesan di bawah ini -->
           <p class="gift-text">
             AKU ADA AKUN SHARING NETFLIX PREIMUM NIHHHH<br /><br />
             kamu kalau lagi <strong>istirahat</strong> atau lagi
@@ -130,6 +176,7 @@
       </div>
     </div>
 
+    <!-- ── Main App ── -->
     <div id="app" class="app">
       <header class="topbar">
         <div class="brand">
@@ -154,7 +201,22 @@
           </svg>
           <span class="brand-text">pomo<em>focus</em></span>
         </div>
-        <div class="topbar-meta">
+
+        <div class="topbar-right">
+          <!-- Install PWA — hanya muncul saat browser mendukung & app belum di-install -->
+          <button
+            id="install-btn"
+            class="install-btn is-hidden"
+            aria-label="Install aplikasi"
+          >
+            <svg viewBox="0 0 16 16" fill="currentColor">
+              <path
+                d="M8 0a1 1 0 011 1v7.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L7 8.586V1a1 1 0 011-1zM1 13a1 1 0 011 1h12a1 1 0 110 2H2a1 1 0 01-1-1v-1a1 1 0 011-1z"
+              />
+            </svg>
+            <span>Install</span>
+          </button>
+
           <div class="session-pill">
             <span class="session-pulse"></span>
             <span id="session-count-label">0 sessions</span>
@@ -238,6 +300,7 @@
               stroke-dashoffset="0"
             />
           </svg>
+
           <div class="timer-face">
             <div class="digits-row">
               <span id="d-min" class="digit">25</span>
@@ -274,11 +337,12 @@
         </div>
       </main>
 
+      <!-- Activity Chart -->
       <section class="chart-panel" aria-label="Aktivitas mingguan">
         <div class="chart-topbar">
           <div class="chart-titles">
             <h3 class="chart-heading">Activity</h3>
-            <p class="chart-subheading">Menit per hari - 7 hari terakhir</p>
+            <p class="chart-subheading">Menit per hari — 7 hari terakhir</p>
           </div>
           <div class="chart-legend">
             <span class="lgd"><i class="lgd-dot lgd-focus"></i>Focus</span>
@@ -305,11 +369,48 @@
         </div>
       </section>
 
+      <!-- History Panel -->
+      <section
+        class="history-panel"
+        aria-label="Riwayat sesi"
+        id="history-panel"
+      >
+        <div class="history-header">
+          <div>
+            <h3 class="chart-heading">History</h3>
+            <p class="chart-subheading">Catatan sesi yang tersimpan</p>
+          </div>
+          <button
+            id="history-toggle"
+            class="history-toggle"
+            aria-expanded="true"
+            aria-controls="history-body"
+            aria-label="Toggle History"
+          >
+            <svg id="history-chevron" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 10.5L3 5.5h10L8 10.5z" />
+            </svg>
+          </button>
+        </div>
+        <div id="history-body" class="history-body">
+          <ul
+            id="history-list"
+            class="history-list"
+            role="list"
+            aria-label="Daftar sesi"
+          ></ul>
+          <p id="history-empty" class="history-empty">
+            Belum ada sesi tersimpan. Selesaikan sesi pertama kamu! 🍅
+          </p>
+        </div>
+      </section>
+
       <footer class="app-footer">
-        <span>pomo<em>focus</em> &copy; 2026</span>
-        <span>1 bulan ilang keknya ini</span>
+        <span>pomo<em>focus</em> · <kbd>1 bulan</kbd></span>
+      </footer>
     </div>
 
+    <!-- Post-Session Modal -->
     <div
       id="session-modal"
       class="modal-backdrop is-hidden"
@@ -318,7 +419,7 @@
     >
       <div class="modal-card">
         <div class="modal-img-wrap">
-          <!-- GANTI: tambah path gambar di array MODAL_IMAGES (script.js) -->
+          <!-- GANTI: tambah path gambar di array MODAL_IMAGES di script.js -->
           <img
             id="modal-photo"
             src="foto_random.jpg"
@@ -329,12 +430,12 @@
           <div class="pcard-img-fallback modal-fallback">
             <span>🖼️</span><span>foto_random.jpg</span>
           </div>
-          <div class="modal-img-badge">Yeayy Session Complete ✓</div>
+          <div class="modal-img-badge">Session Complete ✓</div>
         </div>
         <div class="modal-inner">
-          <!-- Teks diambil acak dari SESSION_QUESTIONS di script.js -->
-          <h2 id="modal-q" class="modal-q">kasih rate dong !?</h2>
+          <h2 id="modal-q" class="modal-q">Gimana sesinya?</h2>
           <div class="emoji-row" role="radiogroup" aria-label="Rating sesi">
+            <!-- Rating 1 — Merah: sangat buruk -->
             <button
               class="em-btn"
               data-v="1"
@@ -368,6 +469,7 @@
                 />
               </svg>
             </button>
+            <!-- Rating 2 — Oranye: kurang baik -->
             <button
               class="em-btn"
               data-v="2"
@@ -387,6 +489,7 @@
                 />
               </svg>
             </button>
+            <!-- Rating 3 — Kuning: biasa aja -->
             <button
               class="em-btn"
               data-v="3"
@@ -408,6 +511,7 @@
                 />
               </svg>
             </button>
+            <!-- Rating 4 — Hijau muda: cukup baik -->
             <button
               class="em-btn"
               data-v="4"
@@ -427,6 +531,7 @@
                 />
               </svg>
             </button>
+            <!-- Rating 5 — Hijau tua: luar biasa -->
             <button
               class="em-btn"
               data-v="5"
@@ -457,16 +562,16 @@
             rows="3"
             maxlength="500"
           ></textarea>
-          <span id="char-count" class="char-count">0 / 500 kata aja ya hehe</span>
+          <span id="char-count" class="char-count">0 / 500</span>
           <div class="modal-actions">
-            <button id="modal-skip" class="mbtn mbtn-ghost">Skip</button>
-            <button id="modal-save" class="mbtn mbtn-primary">Simpen</button>
+            <button id="modal-skip" class="mbtn mbtn-ghost">Lewati</button>
+            <button id="modal-save" class="mbtn mbtn-primary">Simpan</button>
           </div>
         </div>
       </div>
     </div>
 
-    <script src="script.js?=v1.1"></script>
-    <script src="test.js?=v1.1"></script>
+    <script src="script.js"></script>
+    <script src="test.js"></script>
   </body>
 </html>

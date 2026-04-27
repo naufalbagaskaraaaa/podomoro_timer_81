@@ -96,7 +96,6 @@ button {
   color: inherit;
   -webkit-tap-highlight-color: transparent;
 }
-
 button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
@@ -119,11 +118,10 @@ button:focus-visible {
   gap: 1.25rem;
   padding: 1.5rem;
   background: rgba(8, 8, 10, 0.82);
-  backdrop-filter: blur(20px) saturate(0.6);
   -webkit-backdrop-filter: blur(20px) saturate(0.6);
+  backdrop-filter: blur(20px) saturate(0.6);
   animation: fadeIn 0.35s var(--ease-smooth) both;
 }
-
 .popup-overlay.do-fadeout {
   animation: fadeOut 0.5s var(--ease-smooth) forwards;
 }
@@ -253,7 +251,6 @@ button:focus-visible {
   margin-bottom: 1.75rem;
   line-height: 1.6;
 }
-
 .pcard-actions {
   display: flex;
   gap: 0.75rem;
@@ -261,9 +258,9 @@ button:focus-visible {
   flex-wrap: wrap;
 }
 
-/* ── Tombol Mau: scale dikontrol CSS var(--s) diset JS
-   Kecepatan animasi → ubah 0.4s di bawah
-   Faktor scale per-klik → ubah CFG.POPUP_SCALE_FACTOR di script.js ── */
+/* Tombol Mau — scale dikontrol JS lewat element.style.setProperty('--s', value)
+   Ubah kecepatan animasi: nilai 0.4s di transition bawah
+   Ubah faktor: CFG.POPUP_SCALE_FACTOR di script.js                          */
 .btn-mau {
   transform: scale(var(--s, 1));
   transform-origin: center center;
@@ -424,6 +421,40 @@ button:focus-visible {
   transition: color 0.4s;
 }
 
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.install-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.28rem 0.7rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.03em;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.15s var(--ease-bounce);
+}
+.install-btn svg {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+}
+.install-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
 .session-pill {
   display: flex;
   align-items: center;
@@ -499,7 +530,6 @@ button:focus-visible {
   overflow: hidden;
   box-shadow: 0 4px 40px rgba(0, 0, 0, 0.35);
 }
-
 .timer-card::before {
   content: "";
   position: absolute;
@@ -531,7 +561,6 @@ body.is-running .timer-card::before {
   }
 }
 
-/* ── SVG Ring ── */
 .ring-wrap {
   position: relative;
   width: 220px;
@@ -560,7 +589,7 @@ body.is-running .timer-card::before {
   stroke-width: 11;
   stroke-linecap: round;
   transition:
-    stroke-dashoffset 1s linear,
+    stroke-dashoffset 0.6s linear,
     stroke 0.4s;
 }
 .ring-glow {
@@ -570,12 +599,11 @@ body.is-running .timer-card::before {
   stroke-linecap: round;
   opacity: 0.4;
   transition:
-    stroke-dashoffset 1s linear,
+    stroke-dashoffset 0.6s linear,
     stroke 0.4s;
   filter: url(#f-glow);
 }
 
-/* ── Timer Face ── */
 .timer-face {
   position: relative;
   z-index: 2;
@@ -623,7 +651,6 @@ body.is-running .timer-card::before {
   transition: color 0.4s;
 }
 
-/* ── Single Main Button (Start/Stop) ── */
 .btn-main {
   width: 180px;
   padding: 0.8rem 0;
@@ -649,17 +676,16 @@ body.is-running .timer-card::before {
   transform: scale(0.96);
 }
 .btn-main.is-stop {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
   color: #ef4444;
-  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.15);
+  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.12);
 }
 .btn-main.is-stop:hover {
-  background: rgba(239, 68, 68, 0.22);
-  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.2);
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.28);
 }
 
-/* ── Adj Strip ── */
 .adj-strip {
   display: flex;
   gap: 0.6rem;
@@ -694,15 +720,23 @@ body.is-running .timer-card::before {
 .adj-btn:active {
   transform: scale(0.97);
 }
+.adj-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
 
-/* ── Chart Panel ── */
-.chart-panel {
+/* ── Shared panel base ── */
+.chart-panel,
+.history-panel {
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
   padding: 1.4rem 1.4rem 1.15rem;
   box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
 }
+
+/* ── Activity Chart ── */
 .chart-topbar {
   display: flex;
   justify-content: space-between;
@@ -787,6 +821,133 @@ body.is-running .timer-card::before {
   text-transform: uppercase;
 }
 
+/* ── History Panel ── */
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+.history-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: var(--text-lo);
+  transition:
+    background 0.2s,
+    transform 0.3s var(--ease-smooth),
+    color 0.2s;
+}
+.history-toggle svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.3s var(--ease-smooth);
+}
+.history-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-mid);
+}
+.history-toggle[aria-expanded="false"] svg {
+  transform: rotate(-90deg);
+}
+
+.history-body {
+  overflow: hidden;
+  transition:
+    max-height 0.35s var(--ease-smooth),
+    opacity 0.25s;
+  max-height: 600px;
+  opacity: 1;
+}
+.history-body.is-collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem 0.9rem;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  transition: background 0.2s;
+}
+.history-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.hist-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.hist-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.18rem 0.55rem;
+  border-radius: 50px;
+  text-transform: uppercase;
+}
+.hist-mode-badge.m-pomodoro {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+.hist-mode-badge.m-short-break {
+  background: rgba(20, 184, 166, 0.15);
+  color: #2dd4bf;
+}
+.hist-mode-badge.m-long-break {
+  background: rgba(139, 92, 246, 0.15);
+  color: #c4b5fd;
+}
+
+.hist-time {
+  font-size: 0.68rem;
+  color: var(--text-lo);
+  margin-left: auto;
+  letter-spacing: 0.03em;
+}
+.hist-rating {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.hist-note {
+  font-size: 0.82rem;
+  color: var(--text-mid);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.history-empty {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--text-lo);
+  padding: 1.25rem 0;
+  line-height: 1.6;
+}
+
 /* ── Footer ── */
 .app-footer {
   text-align: center;
@@ -821,8 +982,8 @@ kbd {
   justify-content: center;
   padding: 1.5rem;
   background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   animation: fadeIn 0.3s var(--ease-smooth) both;
 }
 .modal-card {
@@ -838,7 +999,7 @@ kbd {
 .modal-img-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 16/7;
+  aspect-ratio: 16/6;
   background: #0e0e14;
   overflow: hidden;
 }
@@ -846,7 +1007,6 @@ kbd {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
   display: block;
 }
 .modal-img-wrap.no-img .modal-photo {
@@ -865,6 +1025,7 @@ kbd {
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.65);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   color: #fff;
   font-size: 0.7rem;
@@ -889,7 +1050,6 @@ kbd {
   line-height: 1.3;
 }
 
-/* Colored emoji rating buttons */
 .emoji-row {
   display: flex;
   gap: 0.55rem;
