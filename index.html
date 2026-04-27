@@ -16,7 +16,7 @@
       content="
     default-src 'self';
     script-src  'self' https://cdn.jsdelivr.net;
-    style-src   'self' 'unsafe-inline' https://fonts.googleapis.com;
+    style-src   'self' https://fonts.googleapis.com;
     font-src    'self' https://fonts.gstatic.com;
     img-src     'self' data: blob:;
     connect-src 'self' https://cdn.jsdelivr.net;
@@ -141,7 +141,7 @@
             masih bisa temenan baik iya kan??
           </p>
           <div class="pcard-actions">
-            <button id="p2-mau" class="btn-mau" style="--s: 1">y</button>
+            <button id="p2-mau" class="btn-mau">y</button>
             <button id="p2-enggak" class="btn-enggak">GA DULU</button>
           </div>
         </div>
@@ -380,17 +380,25 @@
             <h3 class="chart-heading">History</h3>
             <p class="chart-subheading">Catatan sesi yang tersimpan</p>
           </div>
-          <button
-            id="history-toggle"
-            class="history-toggle"
-            aria-expanded="true"
-            aria-controls="history-body"
-            aria-label="Toggle History"
-          >
-            <svg id="history-chevron" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M8 10.5L3 5.5h10L8 10.5z" />
-            </svg>
-          </button>
+          <div class="history-actions" style="display:flex;gap:4px;">
+            <button id="btn-export" class="history-toggle" aria-label="Export Data" title="Export">
+              <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 12l4-4H9V2H7v6H4l4 4zM2 13h12v2H2z" /></svg>
+            </button>
+            <button id="btn-clear" class="history-toggle" aria-label="Hapus Data" title="Hapus Data">
+              <svg viewBox="0 0 16 16" fill="currentColor"><path d="M5.5 1h5v2h-5zM1 3h14v2h-1v9c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1V5H1V3zm3 2v9h8V5H4z" /></svg>
+            </button>
+            <button
+              id="history-toggle"
+              class="history-toggle"
+              aria-expanded="true"
+              aria-controls="history-body"
+              aria-label="Toggle History"
+            >
+              <svg id="history-chevron" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 10.5L3 5.5h10L8 10.5z" />
+              </svg>
+            </button>
+          </div>
         </div>
         <div id="history-body" class="history-body">
           <ul

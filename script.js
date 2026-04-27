@@ -230,6 +230,8 @@ const D = {
 
   installBtn: document.getElementById("install-btn"),
   historyToggle: document.getElementById("history-toggle"),
+  btnExport: document.getElementById("btn-export"),
+  btnClear: document.getElementById("btn-clear"),
   historyBody: document.getElementById("history-body"),
   historyList: document.getElementById("history-list"),
   historyEmpty: document.getElementById("history-empty"),
@@ -260,8 +262,8 @@ function initPopup() {
     return;
   }
 
-  D.p1Mau.style.setProperty("--s", "1");
-  D.p2Mau.style.setProperty("--s", "1");
+  D.p1Mau.dataset.scale = "1";
+  D.p2Mau.dataset.scale = "1";
 
   bindEnggak(D.p1Enggak, D.p1Mau);
   D.p1Mau.addEventListener("click", () => transitionPopup(1, 2));
@@ -275,12 +277,13 @@ function initPopup() {
 function bindEnggak(enggakEl, mauEl) {
   enggakEl.addEventListener("click", () => {
     const cur = SEC.clampFloat(
-      mauEl.style.getPropertyValue("--s") || "1",
+      mauEl.dataset.scale || "1",
       0.1,
       100,
     );
     const next = Math.min(cur * CFG.POPUP_SCALE_FACTOR, CFG.MAX_POPUP_SCALE);
-    mauEl.style.setProperty("--s", next.toFixed(4));
+    mauEl.dataset.scale = next.toFixed(4);
+    mauEl.style.transform = `scale(${next.toFixed(4)})`;
   });
 }
 
@@ -365,7 +368,7 @@ function workerSend(type, extra = {}) {
 ════════════════════════════════════════════════════════════ */
 function saveTimerBackup() {
   if (!S.running) return;
-  sessionStorage.setItem(
+  localStorage.setItem(
     "pomo_timer_backup",
     JSON.stringify({
       endTime: Date.now() + S.timeLeft * 1000,
@@ -376,18 +379,23 @@ function saveTimerBackup() {
 
 function syncFromBackup() {
   try {
-    const raw = sessionStorage.getItem("pomo_timer_backup");
+    const raw = localStorage.getItem("pomo_timer_backup");
     if (!raw) return;
     const { endTime, mode } = JSON.parse(raw);
-    if (mode !== S.mode || !S.running) return;
-    const remaining = Math.max(0, Math.round((endTime - Date.now()) / 1000));
-    S.timeLeft = remaining;
-    if (remaining === 0) {
-      onTimerComplete();
-    } else {
+    
+    // Recovery crash
+    if (mode === S.mode && endTime > Date.now()) {
+      const remaining = Math.round((endTime - Date.now()) / 1000);
+      S.timeLeft = remaining;
       renderTime();
       renderRing();
-      workerSend("resume", { timeLeft: remaining });
+      // Auto resume
+      startTimer();
+    } else if (endTime <= Date.now()) {
+      // Waktu sudah habis selagi tertutup/crash
+      S.timeLeft = 0;
+      onTimerComplete();
+      localStorage.removeItem("pomo_timer_backup");
     }
   } catch {
     /* ignore corrupt backup */
@@ -429,7 +437,7 @@ function startTimer() {
 function stopTimerUI() {
   S.running = false;
   workerSend("stop");
-  sessionStorage.removeItem("pomo_timer_backup");
+  localStorage.removeItem("pomo_timer_backup");
   D.body.classList.remove("is-running");
   D.btnMain.textContent = "Start";
   D.btnMain.classList.remove("is-stop");
@@ -437,7 +445,13 @@ function stopTimerUI() {
   D.btnPlus.disabled = false;
 }
 
+let isMainBtnCold = true;
+
 function handleMainButton() {
+  if (!isMainBtnCold) return;
+  isMainBtnCold = false;
+  setTimeout(() => (isMainBtnCold = true), 500); // 500ms debounce
+
   if (!S.running) {
     startTimer();
   } else {
@@ -538,9 +552,16 @@ function loadActivityData() {
   const raw = localStorage.getItem(CFG.LS_ACTIVITY_KEY);
   const data = SEC.safeParseJSON(raw, {});
   const clean = Object.create(null);
+  
+  const now = Date.now();
+  const maxAgeMs = 365 * 24 * 60 * 60 * 1000; // 1 tahun
+
   for (const [key, val] of Object.entries(data)) {
     if (/^\d{4}-\d{2}-\d{2}$/.test(key)) {
-      clean[key] = SEC.validateActivityEntry(val);
+      const dt = new Date(key);
+      if (!isNaN(dt.getTime()) && (now - dt.getTime() < maxAgeMs)) {
+        clean[key] = SEC.validateActivityEntry(val);
+      }
     }
   }
   return clean;
@@ -993,6 +1014,34 @@ function bindEvents() {
     D.historyBody.classList.toggle("is-collapsed", isOpen);
   });
 
+  D.btnExport.addEventListener("click", () => {
+    const data = {
+      history: loadHistory(),
+      activity: loadActivityData(),
+      sessions: S.totalSessions
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pomofocus_backup_${todayKey()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  D.btnClear.addEventListener("click", () => {
+    if (confirm("Hapus semua riwayat sesi dan aktivitas? Pastikan kamu sudah export backup!")) {
+      localStorage.removeItem(CFG.LS_HISTORY_KEY);
+      localStorage.removeItem(CFG.LS_ACTIVITY_KEY);
+      localStorage.removeItem(CFG.LS_SESSIONS_KEY);
+      S.totalSessions = 0;
+      updateSessionLabel();
+      initChart();
+      renderHistory();
+      alert("Data berhasil dihapus.");
+    }
+  });
+
   D.installBtn.addEventListener("click", async () => {
     if (!S.deferredInstall) return;
     await S.deferredInstall.prompt();
@@ -1045,6 +1094,9 @@ function init() {
   initChart();
   renderHistory();
   bindEvents();
+  
+  // Periksa apakah ada state timer yang tertunda karena browser crash
+  syncFromBackup();
 }
 
 document.addEventListener("DOMContentLoaded", init);
