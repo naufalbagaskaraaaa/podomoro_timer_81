@@ -93,8 +93,9 @@ const SEC = {
 
   safeParseJSON(raw, fallback = null) {
     if (!raw) return fallback;
+    const cleanStr = SEC.deobf(raw);
     try {
-      const parsed = JSON.parse(raw);
+      const parsed = JSON.parse(cleanStr);
       if (
         typeof parsed !== "object" ||
         parsed === null ||
@@ -110,8 +111,9 @@ const SEC = {
 
   safeParseJSONArray(raw) {
     if (!raw) return [];
+    const cleanStr = SEC.deobf(raw);
     try {
-      const parsed = JSON.parse(raw);
+      const parsed = JSON.parse(cleanStr);
       return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
@@ -166,6 +168,27 @@ const SEC = {
       note: typeof e.note === "string" ? e.note.slice(0, 500) : "",
     };
   },
+
+  obf(str) {
+    if (!str) return str;
+    try {
+      return "OBF:" + btoa(encodeURIComponent(str));
+    } catch {
+      return str;
+    }
+  },
+
+  deobf(str) {
+    if (typeof str !== "string") return str;
+    if (str.startsWith("OBF:")) {
+      try {
+        return decodeURIComponent(atob(str.substring(4)));
+      } catch {
+        return null;
+      }
+    }
+    return str;
+  }
 };
 
 /* ════════════════════════════════════════════════════════════
@@ -331,9 +354,36 @@ function finalizePopup() {
 ════════════════════════════════════════════════════════════ */
 function initWorker() {
   try {
-    S.worker = new Worker("./timer.worker.js");
-  } catch {
-    console.warn("[Worker] Tidak bisa load worker — fallback ke setInterval");
+    if (location.protocol === "file:") {
+      // Fallback Blob Worker untuk protokol file:// agar tidak terkena CORS restriction
+      const workerCode = `
+        let endTime = null, tickerId = null;
+        self.onmessage = function(e) {
+          const { type, timeLeft } = e.data;
+          switch (type) {
+            case "start": case "resume":
+              endTime = Date.now() + timeLeft * 1000;
+              clearInterval(tickerId);
+              tickerId = setInterval(() => {
+                if (!endTime) return;
+                const r = Math.max(0, Math.round((endTime - Date.now()) / 1000));
+                self.postMessage({ type: "tick", timeLeft: r });
+                if (r === 0) { clearInterval(tickerId); endTime = null; self.postMessage({ type: "done" }); }
+              }, 250);
+              break;
+            case "pause": case "stop":
+              clearInterval(tickerId); endTime = null;
+              break;
+          }
+        };
+      `;
+      const blob = new Blob([workerCode], { type: "application/javascript" });
+      S.worker = new Worker(URL.createObjectURL(blob));
+    } else {
+      S.worker = new Worker("./timer.worker.js");
+    }
+  } catch (err) {
+    console.warn("[Worker] Gagal load worker:", err.message);
     S.worker = null;
   }
 
@@ -355,9 +405,33 @@ function initWorker() {
   };
 }
 
+let fbTicker = null;
+let fbEndTime = null;
+
 function workerSend(type, extra = {}) {
   if (S.worker) {
     S.worker.postMessage({ type, ...extra });
+  } else {
+    // Fallback natif ke setInterval jika Worker 100% diblokir
+    if (type === "start" || type === "resume") {
+      fbEndTime = Date.now() + extra.timeLeft * 1000;
+      clearInterval(fbTicker);
+      fbTicker = setInterval(() => {
+        if (!fbEndTime) return;
+        const r = Math.max(0, Math.round((fbEndTime - Date.now()) / 1000));
+        S.timeLeft = r;
+        renderTime();
+        renderRing();
+        if (r === 0) {
+          clearInterval(fbTicker);
+          fbEndTime = null;
+          onTimerComplete();
+        }
+      }, 250);
+    } else if (type === "pause" || type === "stop") {
+      clearInterval(fbTicker);
+      fbEndTime = null;
+    }
   }
 }
 
@@ -370,10 +444,10 @@ function saveTimerBackup() {
   if (!S.running) return;
   localStorage.setItem(
     "pomo_timer_backup",
-    JSON.stringify({
+    SEC.obf(JSON.stringify({
       endTime: Date.now() + S.timeLeft * 1000,
       mode: S.mode,
-    }),
+    })),
   );
 }
 
@@ -381,7 +455,9 @@ function syncFromBackup() {
   try {
     const raw = localStorage.getItem("pomo_timer_backup");
     if (!raw) return;
-    const { endTime, mode } = JSON.parse(raw);
+    const cleanStr = SEC.deobf(raw);
+    if (!cleanStr) return;
+    const { endTime, mode } = JSON.parse(cleanStr);
     
     // Recovery crash
     if (mode === S.mode && endTime > Date.now()) {
@@ -539,7 +615,7 @@ function loadDurations() {
 
 function saveDurations() {
   try {
-    localStorage.setItem(CFG.LS_DURATIONS_KEY, JSON.stringify(S.durations));
+    localStorage.setItem(CFG.LS_DURATIONS_KEY, SEC.obf(JSON.stringify(S.durations)));
   } catch {
     console.warn("[Storage] Tidak bisa simpan durasi");
   }
@@ -569,7 +645,7 @@ function loadActivityData() {
 
 function saveActivityData(data) {
   try {
-    localStorage.setItem(CFG.LS_ACTIVITY_KEY, JSON.stringify(data));
+    localStorage.setItem(CFG.LS_ACTIVITY_KEY, SEC.obf(JSON.stringify(data)));
   } catch {
     console.warn("[Storage] Tidak bisa simpan activity");
   }
@@ -751,7 +827,7 @@ function saveHistory(history) {
   try {
     localStorage.setItem(
       CFG.LS_HISTORY_KEY,
-      JSON.stringify(history.slice(-CFG.HISTORY_MAX_ENTRIES)),
+      SEC.obf(JSON.stringify(history.slice(-CFG.HISTORY_MAX_ENTRIES))),
     );
   } catch {
     console.warn("[Storage] Tidak bisa simpan history");
