@@ -23,10 +23,8 @@ const CFG = {
 
   HISTORY_MAX_ENTRIES: 100,
 
-  // GANTI: tambah path gambar modal di sini
   MODAL_IMAGES: ["foto_random.jpg"],
 
-  // GANTI/TAMBAH pertanyaan acak di sini:
   SESSION_QUESTIONS: [
     "gimana hari ini?",
     "udah minum air putih belum?",
@@ -51,7 +49,6 @@ const CFG = {
     "minum bang",
   ],
 
-  // GANTI/TAMBAH placeholder textarea acak di sini:
   SESSION_PLACEHOLDERS: [
     "rate dong hari ini berapa 1-10",
     "isi '-' aja kalau lagi mager",
@@ -76,9 +73,6 @@ const CFG = {
   },
 };
 
-/* ════════════════════════════════════════════════════════════
-   SECURITY UTILITIES
-════════════════════════════════════════════════════════════ */
 const SEC = {
   sanitize(str, maxLen = 500) {
     if (typeof str !== "string") return "";
@@ -188,12 +182,9 @@ const SEC = {
       }
     }
     return str;
-  }
+  },
 };
 
-/* ════════════════════════════════════════════════════════════
-   STATE
-════════════════════════════════════════════════════════════ */
 const S = {
   mode: "pomodoro",
   timeLeft: CFG.durations.pomodoro,
@@ -210,9 +201,6 @@ const S = {
   deferredInstall: null,
 };
 
-/* ════════════════════════════════════════════════════════════
-   DOM CACHE
-════════════════════════════════════════════════════════════ */
 const D = {
   overlay: document.getElementById("popup-overlay"),
   popup1: document.getElementById("popup-1"),
@@ -276,9 +264,6 @@ const HISTORY_MODE_CLASS = {
 
 const RATING_EMOJI = ["", "😩", "😔", "😐", "😊", "🤩"];
 
-/* ════════════════════════════════════════════════════════════
-   POPUP FLOW
-════════════════════════════════════════════════════════════ */
 function initPopup() {
   if (localStorage.getItem(CFG.LS_POPUP_KEY)) {
     D.overlay.classList.add("is-hidden");
@@ -299,11 +284,7 @@ function initPopup() {
 
 function bindEnggak(enggakEl, mauEl) {
   enggakEl.addEventListener("click", () => {
-    const cur = SEC.clampFloat(
-      mauEl.dataset.scale || "1",
-      0.1,
-      100,
-    );
+    const cur = SEC.clampFloat(mauEl.dataset.scale || "1", 0.1, 100);
     const next = Math.min(cur * CFG.POPUP_SCALE_FACTOR, CFG.MAX_POPUP_SCALE);
     mauEl.dataset.scale = next.toFixed(4);
     mauEl.style.transform = `scale(${next.toFixed(4)})`;
@@ -341,21 +322,9 @@ function finalizePopup() {
   );
 }
 
-/* ════════════════════════════════════════════════════════════
-   WEB WORKER TIMER
-   Worker file: timer.worker.js (harus satu folder)
-   Protocol:
-     → start   { type, timeLeft }
-     → resume  { type, timeLeft }
-     → pause   { type }
-     → stop    { type }
-     ← tick    { type, timeLeft }
-     ← done    { type }
-════════════════════════════════════════════════════════════ */
 function initWorker() {
   try {
     if (location.protocol === "file:") {
-      // Fallback Blob Worker untuk protokol file:// agar tidak terkena CORS restriction
       const workerCode = `
         let endTime = null, tickerId = null;
         self.onmessage = function(e) {
@@ -412,7 +381,6 @@ function workerSend(type, extra = {}) {
   if (S.worker) {
     S.worker.postMessage({ type, ...extra });
   } else {
-    // Fallback natif ke setInterval jika Worker 100% diblokir
     if (type === "start" || type === "resume") {
       fbEndTime = Date.now() + extra.timeLeft * 1000;
       clearInterval(fbTicker);
@@ -435,19 +403,16 @@ function workerSend(type, extra = {}) {
   }
 }
 
-/* ════════════════════════════════════════════════════════════
-   PAGE VISIBILITY SYNC
-   Jika tab di-hide lalu kembali, sinkronkan timeLeft
-   dari sessionStorage backup (cadangan jika worker ikut di-throttle)
-════════════════════════════════════════════════════════════ */
 function saveTimerBackup() {
   if (!S.running) return;
   localStorage.setItem(
     "pomo_timer_backup",
-    SEC.obf(JSON.stringify({
-      endTime: Date.now() + S.timeLeft * 1000,
-      mode: S.mode,
-    })),
+    SEC.obf(
+      JSON.stringify({
+        endTime: Date.now() + S.timeLeft * 1000,
+        mode: S.mode,
+      }),
+    ),
   );
 }
 
@@ -458,29 +423,22 @@ function syncFromBackup() {
     const cleanStr = SEC.deobf(raw);
     if (!cleanStr) return;
     const { endTime, mode } = JSON.parse(cleanStr);
-    
-    // Recovery crash
+
     if (mode === S.mode && endTime > Date.now()) {
       const remaining = Math.round((endTime - Date.now()) / 1000);
       S.timeLeft = remaining;
       renderTime();
       renderRing();
-      // Auto resume
+
       startTimer();
     } else if (endTime <= Date.now()) {
-      // Waktu sudah habis selagi tertutup/crash
       S.timeLeft = 0;
       onTimerComplete();
       localStorage.removeItem("pomo_timer_backup");
     }
-  } catch {
-    /* ignore corrupt backup */
-  }
+  } catch {}
 }
 
-/* ════════════════════════════════════════════════════════════
-   TIMER CONTROLS
-════════════════════════════════════════════════════════════ */
 function renderTime() {
   const m = Math.floor(S.timeLeft / 60);
   const s = S.timeLeft % 60;
@@ -526,7 +484,7 @@ let isMainBtnCold = true;
 function handleMainButton() {
   if (!isMainBtnCold) return;
   isMainBtnCold = false;
-  setTimeout(() => (isMainBtnCold = true), 500); // 500ms debounce
+  setTimeout(() => (isMainBtnCold = true), 500);
 
   if (!S.running) {
     startTimer();
@@ -604,9 +562,6 @@ function updateSessionLabel() {
   D.sessionLabel.textContent = `${n} session${n !== 1 ? "s" : ""}`;
 }
 
-/* ════════════════════════════════════════════════════════════
-   CUSTOM DURATION PERSISTENCE
-════════════════════════════════════════════════════════════ */
 function loadDurations() {
   const raw = localStorage.getItem(CFG.LS_DURATIONS_KEY);
   const parsed = SEC.safeParseJSON(raw, {});
@@ -615,27 +570,27 @@ function loadDurations() {
 
 function saveDurations() {
   try {
-    localStorage.setItem(CFG.LS_DURATIONS_KEY, SEC.obf(JSON.stringify(S.durations)));
+    localStorage.setItem(
+      CFG.LS_DURATIONS_KEY,
+      SEC.obf(JSON.stringify(S.durations)),
+    );
   } catch {
     console.warn("[Storage] Tidak bisa simpan durasi");
   }
 }
 
-/* ════════════════════════════════════════════════════════════
-   CHART ENGINE
-════════════════════════════════════════════════════════════ */
 function loadActivityData() {
   const raw = localStorage.getItem(CFG.LS_ACTIVITY_KEY);
   const data = SEC.safeParseJSON(raw, {});
   const clean = Object.create(null);
-  
+
   const now = Date.now();
-  const maxAgeMs = 365 * 24 * 60 * 60 * 1000; // 1 tahun
+  const maxAgeMs = 365 * 24 * 60 * 60 * 1000;
 
   for (const [key, val] of Object.entries(data)) {
     if (/^\d{4}-\d{2}-\d{2}$/.test(key)) {
       const dt = new Date(key);
-      if (!isNaN(dt.getTime()) && (now - dt.getTime() < maxAgeMs)) {
+      if (!isNaN(dt.getTime()) && now - dt.getTime() < maxAgeMs) {
         clean[key] = SEC.validateActivityEntry(val);
       }
     }
@@ -811,9 +766,6 @@ function updateStats() {
   D.statSessions.textContent = S.totalSessions;
 }
 
-/* ════════════════════════════════════════════════════════════
-   HISTORY
-════════════════════════════════════════════════════════════ */
 function loadHistory() {
   const raw = localStorage.getItem(CFG.LS_HISTORY_KEY);
   const entries = SEC.safeParseJSONArray(raw);
@@ -917,9 +869,6 @@ function formatHistDate(iso) {
   }
 }
 
-/* ════════════════════════════════════════════════════════════
-   SESSION MODAL
-════════════════════════════════════════════════════════════ */
 function openSessionModal() {
   const img =
     CFG.MODAL_IMAGES[Math.floor(Math.random() * CFG.MODAL_IMAGES.length)];
@@ -962,9 +911,6 @@ function saveAndClose() {
   S.pendingMinutes = 0;
 }
 
-/* ════════════════════════════════════════════════════════════
-   AUDIO & NOTIFICATIONS
-════════════════════════════════════════════════════════════ */
 function playNotif() {
   try {
     D.audio.currentTime = 0;
@@ -993,9 +939,7 @@ function beep() {
       osc.start(ctx.currentTime + s);
       osc.stop(ctx.currentTime + s + d + 0.05);
     });
-  } catch (e) {
-    /* audio unavailable */
-  }
+  } catch (e) {}
 }
 
 function requestNotifPermission() {
@@ -1018,14 +962,9 @@ function sendBrowserNotif(mode) {
       silent: false,
     });
     setTimeout(() => n.close(), 6000);
-  } catch {
-    /* non-critical */
-  }
+  } catch {}
 }
 
-/* ════════════════════════════════════════════════════════════
-   PWA INSTALL
-════════════════════════════════════════════════════════════ */
 function initPWA() {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker
@@ -1045,16 +984,10 @@ function initPWA() {
   });
 }
 
-/* ════════════════════════════════════════════════════════════
-   UTILITY
-════════════════════════════════════════════════════════════ */
 function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-/* ════════════════════════════════════════════════════════════
-   EVENT BINDING
-════════════════════════════════════════════════════════════ */
 function bindEvents() {
   D.modeTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
@@ -1094,9 +1027,11 @@ function bindEvents() {
     const data = {
       history: loadHistory(),
       activity: loadActivityData(),
-      sessions: S.totalSessions
+      sessions: S.totalSessions,
     };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -1106,7 +1041,11 @@ function bindEvents() {
   });
 
   D.btnClear.addEventListener("click", () => {
-    if (confirm("Hapus semua riwayat sesi dan aktivitas? Pastikan kamu sudah export backup!")) {
+    if (
+      confirm(
+        "Hapus semua riwayat sesi dan aktivitas? Pastikan kamu sudah export backup!",
+      )
+    ) {
       localStorage.removeItem(CFG.LS_HISTORY_KEY);
       localStorage.removeItem(CFG.LS_ACTIVITY_KEY);
       localStorage.removeItem(CFG.LS_SESSIONS_KEY);
@@ -1144,9 +1083,6 @@ function bindEvents() {
   });
 }
 
-/* ════════════════════════════════════════════════════════════
-   INIT
-════════════════════════════════════════════════════════════ */
 function init() {
   initPWA();
   initPopup();
@@ -1170,8 +1106,7 @@ function init() {
   initChart();
   renderHistory();
   bindEvents();
-  
-  // Periksa apakah ada state timer yang tertunda karena browser crash
+
   syncFromBackup();
 }
 

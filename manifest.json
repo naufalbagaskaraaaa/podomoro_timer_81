@@ -1,5 +1,5 @@
 {
-  "name": "pomofocus — Focus Timer",
+  "name": "pomofocus_for_domas",
   "short_name": "pomofocus",
   "description": "Pomodoro timer dengan activity tracking dan evaluasi sesi",
   "start_url": "./index.html",

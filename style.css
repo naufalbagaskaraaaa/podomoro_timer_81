@@ -106,7 +106,6 @@ button:focus-visible {
   display: none !important;
 }
 
-/* ── Popup Overlay ── */
 .popup-overlay {
   position: fixed;
   inset: 0;
@@ -258,12 +257,12 @@ button:focus-visible {
   flex-wrap: wrap;
 }
 
-/* Tombol Mau — scale dikontrol JS lewat element.style.setProperty('--s', value)
-   Ubah kecepatan animasi: nilai 0.4s di transition bawah
-   Ubah faktor: CFG.POPUP_SCALE_FACTOR di script.js                          */
 .btn-mau {
   transform-origin: center center;
-  transition: transform 0.4s var(--ease-bounce), box-shadow 0.2s, filter 0.2s;
+  transition:
+    transform 0.4s var(--ease-bounce),
+    box-shadow 0.2s,
+    filter 0.2s;
   will-change: transform;
   background: linear-gradient(135deg, var(--accent-a), var(--accent-b));
   color: #fff;
@@ -383,7 +382,6 @@ button:focus-visible {
   transform: scale(0.97);
 }
 
-/* ── App Layout ── */
 .app {
   width: min(100%, 520px);
   padding: 1.5rem 1.25rem 3rem;
@@ -392,7 +390,6 @@ button:focus-visible {
   gap: var(--gap);
 }
 
-/* ── Topbar ── */
 .topbar {
   display: flex;
   align-items: center;
@@ -485,7 +482,6 @@ button:focus-visible {
   }
 }
 
-/* ── Mode Tabs ── */
 .mode-nav {
   display: flex;
   gap: 0.35rem;
@@ -515,7 +511,6 @@ button:focus-visible {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* ── Timer Card ── */
 .timer-card {
   background: var(--surface-1);
   border: 1px solid var(--border);
@@ -725,7 +720,6 @@ body.is-running .timer-card::before {
   transform: none;
 }
 
-/* ── Shared panel base ── */
 .chart-panel,
 .history-panel {
   background: var(--surface-1);
@@ -735,7 +729,6 @@ body.is-running .timer-card::before {
   box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
 }
 
-/* ── Activity Chart ── */
 .chart-topbar {
   display: flex;
   justify-content: space-between;
@@ -820,7 +813,6 @@ body.is-running .timer-card::before {
   text-transform: uppercase;
 }
 
-/* ── History Panel ── */
 .history-header {
   display: flex;
   justify-content: space-between;
@@ -947,7 +939,6 @@ body.is-running .timer-card::before {
   line-height: 1.6;
 }
 
-/* ── Footer ── */
 .app-footer {
   text-align: center;
   font-size: 0.7rem;
@@ -971,7 +962,6 @@ kbd {
   color: var(--text-mid);
 }
 
-/* ── Session Modal ── */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1152,7 +1142,6 @@ kbd {
   transform: scale(0.97);
 }
 
-/* ── Responsive ── */
 @media (max-width: 420px) {
   .digit {
     font-size: 2.5rem;

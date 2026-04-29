@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "pomofocus-v2";
+const CACHE_NAME = "pomofocus_for_domas-v3";
 const CACHE_TIMEOUT = 5000;
 
 const LOCAL_ASSETS = [
@@ -69,7 +69,7 @@ async function networkFirstWithTimeout(request) {
   try {
     const response = await fetch(request, { signal: controller.signal });
     clearTimeout(timeoutId);
-    // Sama seperti di atas, hindari menyimpan status 206
+
     if (response.ok && response.status === 200) {
       const cache = await caches.open(CACHE_NAME);
       cache.put(request, response.clone());
@@ -88,8 +88,7 @@ async function cacheFirstWithNetwork(request) {
 
   try {
     const response = await fetch(request);
-    // Hanya simpan file ke Cache jika statusnya persis 200 OK
-    // (Bypass 206 Partial Content yang tidak didukung oleh Cache API)
+
     if (response.ok && response.status === 200) {
       const cache = await caches.open(CACHE_NAME);
       cache.put(request, response.clone());
