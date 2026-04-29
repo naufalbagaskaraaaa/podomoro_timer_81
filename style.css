@@ -819,6 +819,10 @@ body.is-running .timer-card::before {
   align-items: flex-start;
   margin-bottom: 1rem;
 }
+.history-actions {
+  display: flex;
+  gap: 4px;
+}
 .history-toggle {
   display: flex;
   align-items: center;
