@@ -184,6 +184,7 @@ const SEC = {
     return str;
   },
 };
+window.SEC = SEC;
 
 const S = {
   mode: "pomodoro",
@@ -552,7 +553,7 @@ function adjustTime(deltaSec) {
   );
   S.totalTime = S.timeLeft;
   S.durations[S.mode] = S.timeLeft;
-  saveDurations();
+    try { saveDurations(); } catch { /* non-critical */ }
   renderTime();
   renderRing();
 }
@@ -996,7 +997,8 @@ function pick(arr) {
 function bindEvents() {
   D.modeTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
-      if (!S.running) setMode(tab.dataset.mode);
+      if (S.running) stopTimerUI();
+      setMode(tab.dataset.mode);
     });
   });
 
@@ -1112,6 +1114,8 @@ function init() {
   renderHistory();
   bindEvents();
 
+    D.btnMinus.disabled = false;
+    D.btnPlus.disabled  = false;
   syncFromBackup();
 }
 
