@@ -644,6 +644,10 @@ function buildDatasets(days7, act) {
 }
 
 function initChart() {
+  if (typeof Chart === "undefined") {
+    console.warn("Chart.js gagal dimuat. Grafik tidak akan tampil.");
+    return;
+  }
   const ctx = document.getElementById("activity-chart").getContext("2d");
   const act = loadActivityData();
   const days = getLast7Days();
@@ -730,6 +734,7 @@ function initChart() {
 }
 
 function refreshChart() {
+  if (!S.activityChart) return;
   const act = loadActivityData();
   const days = getLast7Days();
   const { pomo, sb, lb } = buildDatasets(days, act);
