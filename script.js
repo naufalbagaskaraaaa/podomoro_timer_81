@@ -480,7 +480,11 @@ function adjustTime(deltaSec) {
   );
   S.totalTime = S.timeLeft;
   S.durations[S.mode] = S.timeLeft;
-    try { saveDurations(); } catch { /* non-critical */ }
+  try {
+    saveDurations();
+  } catch {
+    /* non-critical */
+  }
   renderTime();
   renderRing();
 }
@@ -1040,8 +1044,8 @@ function init() {
   renderHistory();
   bindEvents();
 
-    D.btnMinus.disabled = false;
-    D.btnPlus.disabled  = false;
+  D.btnMinus.disabled = false;
+  D.btnPlus.disabled = false;
   syncFromBackup();
 }
 
