@@ -248,7 +248,14 @@ const HISTORY_MODE_CLASS = {
   "long-break": "m-long-break",
 };
 
-const RATING_EMOJI = ["", "😩", "😔", "😐", "😊", "🤩"];
+const RATING_EMOJI = [
+  "",
+  `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="19" fill="#ef4444" /><circle cx="13" cy="16" r="2.5" fill="#7f1d1d" /><circle cx="27" cy="16" r="2.5" fill="#7f1d1d" /><path d="M12 27 Q20 21 28 27" stroke="#7f1d1d" stroke-width="2.5" fill="none" stroke-linecap="round" /><path d="M11 12 Q13 10 15 12" stroke="#7f1d1d" stroke-width="2" fill="none" stroke-linecap="round" /><path d="M25 12 Q27 10 29 12" stroke="#7f1d1d" stroke-width="2" fill="none" stroke-linecap="round" /></svg>`,
+  `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="19" fill="#f97316" /><circle cx="13" cy="16" r="2.5" fill="#7c2d12" /><circle cx="27" cy="16" r="2.5" fill="#7c2d12" /><path d="M13 26 Q20 23 27 26" stroke="#7c2d12" stroke-width="2.5" fill="none" stroke-linecap="round" /></svg>`,
+  `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="19" fill="#facc15" /><circle cx="13" cy="16" r="2.5" fill="#713f12" /><circle cx="27" cy="16" r="2.5" fill="#713f12" /><line x1="13" y1="26" x2="27" y2="26" stroke="#713f12" stroke-width="2.5" stroke-linecap="round" /></svg>`,
+  `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="19" fill="#4ade80" /><circle cx="13" cy="16" r="2.5" fill="#14532d" /><circle cx="27" cy="16" r="2.5" fill="#14532d" /><path d="M13 23 Q20 29 27 23" stroke="#14532d" stroke-width="2.5" fill="none" stroke-linecap="round" /></svg>`,
+  `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="19" fill="#16a34a" /><circle cx="13" cy="15" r="3.5" fill="#052e16" /><circle cx="27" cy="15" r="3.5" fill="#052e16" /><circle cx="14.5" cy="13.5" r="1.2" fill="white" /><circle cx="28.5" cy="13.5" r="1.2" fill="white" /><path d="M11 23 Q20 32 29 23" stroke="#052e16" stroke-width="2.5" fill="none" stroke-linecap="round" /></svg>`
+];
 
 function initWorker() {
   try {
@@ -765,7 +772,11 @@ function renderHistory() {
 
     const ratingEl = document.createElement("span");
     ratingEl.className = "hist-rating";
-    ratingEl.textContent = entry.rating ? RATING_EMOJI[entry.rating] : "—";
+    if (entry.rating) {
+      ratingEl.innerHTML = RATING_EMOJI[entry.rating];
+    } else {
+      ratingEl.textContent = "—";
+    }
     ratingEl.title = entry.rating
       ? `Rating: ${entry.rating}/5`
       : "Tidak dirating";
