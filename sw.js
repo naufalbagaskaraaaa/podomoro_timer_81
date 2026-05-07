@@ -34,7 +34,12 @@ self.addEventListener("install", (event) => {
       .then((cache) => cache.addAll(LOCAL_ASSETS))
       .catch((err) => console.warn("[SW] Cache install partial:", err)),
   );
-  self.skipWaiting();
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("activate", (event) => {

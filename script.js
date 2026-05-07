@@ -226,6 +226,7 @@ const D = {
   modalSave: document.getElementById("modal-save"),
 
   installBtn: document.getElementById("install-btn"),
+  updateBtn: document.getElementById("update-btn"),
   historyToggle: document.getElementById("history-toggle"),
   btnExport: document.getElementById("btn-export"),
   btnClear: document.getElementById("btn-clear"),
@@ -917,7 +918,26 @@ function initPWA() {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker
       .register("./sw.js", { scope: "./" })
+      .then((registration) => {
+        registration.addEventListener("updatefound", () => {
+          const newWorker = registration.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener("statechange", () => {
+            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+              S.waitingWorker = newWorker;
+              D.updateBtn.classList.remove("is-hidden");
+            }
+          });
+        });
+      })
       .catch((err) => console.warn("[SW] Registrasi gagal:", err.message));
+
+    let refreshing;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
   }
 
   window.addEventListener("beforeinstallprompt", (e) => {
@@ -1011,6 +1031,12 @@ function bindEvents() {
     await S.deferredInstall.prompt();
     S.deferredInstall = null;
     D.installBtn.classList.add("is-hidden");
+  });
+
+  D.updateBtn.addEventListener("click", () => {
+    if (S.waitingWorker) {
+      S.waitingWorker.postMessage({ type: "SKIP_WAITING" });
+    }
   });
 
   document.addEventListener("visibilitychange", () => {
