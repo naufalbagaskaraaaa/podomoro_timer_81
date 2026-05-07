@@ -1034,8 +1034,11 @@ function bindEvents() {
   });
 
   D.updateBtn.addEventListener("click", () => {
-    if (S.waitingWorker) {
-      S.waitingWorker.postMessage({ type: "SKIP_WAITING" });
+    const updateMessage = "Versi baru tersedia!\n\nFitur baru:\n- Pemberitahuan update PWA manual\n- Perbaikan bug dan performa\n\nMuat ulang aplikasi sekarang untuk memperbarui?";
+    if (confirm(updateMessage)) {
+      if (S.waitingWorker) {
+        S.waitingWorker.postMessage({ type: "SKIP_WAITING" });
+      }
     }
   });
 
