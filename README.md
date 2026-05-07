@@ -44,6 +44,7 @@ Standar pada proyek ini tidak memerlukan dokumentasi per-fungsi, melainkan pemba
 - `sw.js` — Service worker untuk memberikan fungsionalitas PWA (Progressive Web App) seperti *caching* dan instalasi *offline*.
 - `test.js` — Modul independen berisi *script test* (Unit & Integration) yang difokuskan untuk dijalankan langsung pada environment peramban (Browser console).
 - `manifest.json` — Konfigurasi metadata aplikasi untuk PWA dan mobile/desktop installability.
+- `.htaccess` — Konfigurasi *server-side* (Apache) yang mengatur *caching* agresif untuk file statis, kompresi GZIP, pembaruan keamanan (header), dan pengalihan (rewrites) guna mengoptimalkan pemuatan PWA.
 
 ## �🚀 How to Run
 
