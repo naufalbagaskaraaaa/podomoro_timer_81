@@ -2,7 +2,6 @@
 
 (function () {
   const KEYS = [
-    "hasSeenApology",
     "pomo_activity",
     "pomo_sessions",
     "pomo_durations",
@@ -56,7 +55,6 @@
       this.testUnitLocalStorage();
       this.testIntegrationTabs();
       this.testIntegrationButtons();
-      this.testSystemPopups();
 
       console.log("\n=========================================");
       console.log(`📊 HASIL TEST: ${this.pass} BERHASIL | ${this.fail} GAGAL`);
@@ -137,20 +135,6 @@
       this.assert(
         parseInt(dMin.textContent, 10) === initialMin,
         "INTEGRATION: Tombol [- 1 min] berhasil mengurangi waktu di antarmuka.",
-      );
-    },
-
-    testSystemPopups() {
-      const overlay = document.getElementById("popup-overlay");
-      const btnMau = document.getElementById("p1-mau");
-
-      this.assert(
-        !!overlay,
-        "SYSTEM: Element layout Popup (apology screen) ditemukan.",
-      );
-      this.assert(
-        !!btnMau,
-        "SYSTEM: Tombol interaksi untuk konfirmasi maaf ditemukan.",
       );
     },
   };

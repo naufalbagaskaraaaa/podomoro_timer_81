@@ -1,7 +1,6 @@
 "use strict";
 
 const CFG = {
-  LS_POPUP_KEY: "hasSeenApology",
   LS_ACTIVITY_KEY: "pomo_activity",
   LS_SESSIONS_KEY: "pomo_sessions",
   LS_DURATIONS_KEY: "pomo_durations",
@@ -17,9 +16,6 @@ const CFG = {
   DURATION_MAX: 99 * 60,
 
   RING_C: 741.42,
-
-  POPUP_SCALE_FACTOR: 1.5,
-  MAX_POPUP_SCALE: 5.0,
 
   HISTORY_MAX_ENTRIES: 100,
 
@@ -203,17 +199,6 @@ const S = {
 };
 
 const D = {
-  overlay: document.getElementById("popup-overlay"),
-  popup1: document.getElementById("popup-1"),
-  popup2: document.getElementById("popup-2"),
-  popup3: document.getElementById("popup-3"),
-  p1Mau: document.getElementById("p1-mau"),
-  p1Enggak: document.getElementById("p1-enggak"),
-  p2Mau: document.getElementById("p2-mau"),
-  p2Enggak: document.getElementById("p2-enggak"),
-  p3Done: document.getElementById("p3-done"),
-  stepDots: document.querySelectorAll(".stepper-dot"),
-
   html: document.documentElement,
   body: document.body,
   modeTabs: document.querySelectorAll(".mtab"),
@@ -264,64 +249,6 @@ const HISTORY_MODE_CLASS = {
 };
 
 const RATING_EMOJI = ["", "😩", "😔", "😐", "😊", "🤩"];
-
-function initPopup() {
-  if (localStorage.getItem(CFG.LS_POPUP_KEY)) {
-    D.overlay.classList.add("is-hidden");
-    return;
-  }
-
-  D.p1Mau.dataset.scale = "1";
-  D.p2Mau.dataset.scale = "1";
-
-  bindEnggak(D.p1Enggak, D.p1Mau);
-  D.p1Mau.addEventListener("click", () => transitionPopup(1, 2));
-
-  bindEnggak(D.p2Enggak, D.p2Mau);
-  D.p2Mau.addEventListener("click", () => transitionPopup(2, 3));
-
-  D.p3Done.addEventListener("click", finalizePopup);
-}
-
-function bindEnggak(enggakEl, mauEl) {
-  enggakEl.addEventListener("click", () => {
-    const cur = SEC.clampFloat(mauEl.dataset.scale || "1", 0.1, 100);
-    const next = Math.min(cur * CFG.POPUP_SCALE_FACTOR, CFG.MAX_POPUP_SCALE);
-    mauEl.dataset.scale = next.toFixed(4);
-    mauEl.style.transform = `scale(${next.toFixed(4)})`;
-  });
-}
-
-function transitionPopup(from, to) {
-  const fromEl = document.getElementById(`popup-${from}`);
-  const toEl = document.getElementById(`popup-${to}`);
-  fromEl.style.cssText =
-    "opacity:0;transform:translateY(-20px) scale(0.95);transition:opacity 0.25s ease,transform 0.25s ease;";
-  setTimeout(() => {
-    fromEl.classList.add("is-hidden");
-    fromEl.style.cssText = "";
-    toEl.classList.remove("is-hidden");
-    toEl.style.animation = "none";
-    requestAnimationFrame(() => {
-      toEl.style.animation = "";
-    });
-    updateStepDots(to);
-  }, 240);
-}
-
-function updateStepDots(active) {
-  D.stepDots.forEach((d, i) => d.classList.toggle("active", i + 1 === active));
-}
-
-function finalizePopup() {
-  localStorage.setItem(CFG.LS_POPUP_KEY, "true");
-  D.overlay.classList.add("do-fadeout");
-  D.overlay.addEventListener(
-    "animationend",
-    () => D.overlay.classList.add("is-hidden"),
-    { once: true },
-  );
-}
 
 function initWorker() {
   try {
@@ -1092,7 +1019,6 @@ function bindEvents() {
 
 function init() {
   initPWA();
-  initPopup();
   initWorker();
 
   S.durations = loadDurations();
